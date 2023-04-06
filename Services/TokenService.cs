@@ -29,4 +29,40 @@ public class TokenService
         var encryptedToken = _encryptionService.EncryptString(tokenJson);
         return encryptedToken;
     }
+
+    public LoginToken DecryptToken(string encryptedToken)
+    {
+        try
+        {
+            var tokenJson = _encryptionService.DecryptString(encryptedToken);
+            var token = JsonSerializer.Deserialize<LoginToken>(tokenJson);
+
+            if (DateTime.UtcNow >= token.ExpiryTime)
+                throw new ExpiredTokenException();
+
+            return token;
+        }
+        catch (DecryptionFailedException)
+        {
+            throw new InvalidTokenException();
+        }
+        catch (JsonException)
+        {
+            throw new InvalidTokenException();
+        }
+    }
+}
+
+public class InvalidTokenException : Exception
+{
+    public InvalidTokenException() : base("The token is invalid.")
+    {
+    }
+}
+
+public class ExpiredTokenException : Exception
+{
+    public ExpiredTokenException() : base("The token has expired.")
+    {
+    }
 }

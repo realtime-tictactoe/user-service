@@ -26,11 +26,11 @@ public class LoginController : ControllerBase
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var user = await _userService.LoginUser(credentials.Username, credentials.Password);
-            
+            var user = await _userService.LoginUserAsync(credentials.Username, credentials.Password);
+
             var token = _tokenService.IssueEncryptedToken(user);
             Response.Cookies.Append("Token", token);
-            
+
             var info = new UserInfo
             {
                 Id = user.Id,

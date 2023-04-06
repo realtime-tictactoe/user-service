@@ -24,7 +24,20 @@ public class UserService
         _collection = database.GetCollection<UserAccount>(dbOptions.Value.UsersCollectionName);
     }
     
-    public async Task<UserAccount> LoginUser(string username, string password)
+    public async Task<UserAccount> GetUserAsync(string id)
+    {
+        var idEqualityFilter = Builders<UserAccount>.Filter
+            .Eq(user => user.Id, id);
+        var user = await _collection.Find(idEqualityFilter).FirstOrDefaultAsync();
+        if (user is null)
+            throw new UserDoesNotExistException();
+        
+        // Remove sensitive information before returning the user object
+        user.PasswordHash = null;
+        return user;
+    }
+    
+    public async Task<UserAccount> LoginUserAsync(string username, string password)
     {
         var usernameEqualityFilter = Builders<UserAccount>.Filter
             .Eq(user => user.Username, username);
@@ -81,6 +94,13 @@ public class UserService
 public class UserServiceException : Exception
 {
     protected UserServiceException(string message) : base(message)
+    {
+    }
+}
+
+public class UserDoesNotExistException : UserServiceException
+{
+    public UserDoesNotExistException() : base("User does not exist.")
     {
     }
 }

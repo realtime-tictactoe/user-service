@@ -29,55 +29,83 @@ public class EncryptionService
 
     public string EncryptString(string payload)
     {
-        var payloadBytes = Encoding.UTF8.GetBytes(payload);
-        var ivBytes = GenerateRandomVector();
-
-        using (var memoryStream = new MemoryStream())
-        using (var aes = Aes.Create())
+        try
         {
-            aes.Key = _key;
-            aes.IV = ivBytes;
+            var payloadBytes = Encoding.UTF8.GetBytes(payload);
+            var ivBytes = GenerateRandomVector();
 
-            using (var cryptoStream = new CryptoStream(
-                       memoryStream, aes.CreateEncryptor(), CryptoStreamMode.Write))
+            using (var memoryStream = new MemoryStream())
+            using (var aes = Aes.Create())
             {
-                cryptoStream.Write(payloadBytes);
+                aes.Key = _key;
+                aes.IV = ivBytes;
+
+                using (var cryptoStream = new CryptoStream(
+                           memoryStream, aes.CreateEncryptor(), CryptoStreamMode.Write))
+                {
+                    cryptoStream.Write(payloadBytes);
+                }
+
+                var iv = Convert.ToHexString(ivBytes);
+                var cipherText = Convert.ToHexString(memoryStream.ToArray());
+
+                return iv + "!" + cipherText;
             }
-
-            var iv = Convert.ToHexString(ivBytes);
-            var cipherText = Convert.ToHexString(memoryStream.ToArray());
-
-            return iv + "!" + cipherText;
+        }
+        catch
+        {
+            throw new EncryptionFailedException();
         }
     }
 
     public string DecryptString(string cipherText)
     {
-        var splitStrings = cipherText.Split("!");
-        var ivBytes = Convert.FromHexString(splitStrings[0]);
-        var cipherBytes = Convert.FromHexString(splitStrings[1]);
-
-        string decryptedPayload;
-        
-        using (var memoryStream = new MemoryStream(cipherBytes))
-        using (var aes = Aes.Create())
+        try
         {
-            aes.Key = _key;
-            aes.IV = ivBytes;
+            var splitStrings = cipherText.Split("!");
+            var ivBytes = Convert.FromHexString(splitStrings[0]);
+            var cipherBytes = Convert.FromHexString(splitStrings[1]);
 
-            using (var cryptoStream = new CryptoStream(
-                       memoryStream, aes.CreateDecryptor(), CryptoStreamMode.Read))
-            using (var reader = new StreamReader(cryptoStream))
+            string decryptedPayload;
+
+            using (var memoryStream = new MemoryStream(cipherBytes))
+            using (var aes = Aes.Create())
             {
-                decryptedPayload = reader.ReadToEnd();
-            }
-        }
+                aes.Key = _key;
+                aes.IV = ivBytes;
 
-        return decryptedPayload;
+                using (var cryptoStream = new CryptoStream(
+                           memoryStream, aes.CreateDecryptor(), CryptoStreamMode.Read))
+                using (var reader = new StreamReader(cryptoStream))
+                {
+                    decryptedPayload = reader.ReadToEnd();
+                }
+            }
+
+            return decryptedPayload;
+        }
+        catch
+        {
+            throw new DecryptionFailedException();
+        }
     }
 
-    private byte[] GenerateRandomVector()
+    private static byte[] GenerateRandomVector()
     {
         return RandomNumberGenerator.GetBytes(16);
+    }
+}
+
+public class EncryptionFailedException : Exception
+{
+    public EncryptionFailedException() : base("The encryption failed.")
+    {
+    }
+}
+
+public class DecryptionFailedException : Exception
+{
+    public DecryptionFailedException() : base("The decryption failed.")
+    {
     }
 }
