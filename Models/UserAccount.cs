@@ -12,7 +12,7 @@ public class UserAccount
     public string Username { get; set; }
     public string PasswordHash { get; set; }
     [BsonDateTimeOptions(Kind = DateTimeKind.Utc)]
-    public DateTime CreatedTime { get; set; }
+    public DateTime CreationTime { get; set; }
     [BsonDateTimeOptions(Kind = DateTimeKind.Utc)]
     public DateTime LastLoginTime { get; set; }
 }

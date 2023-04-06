@@ -67,7 +67,7 @@ public class UserService
         {
             Username = username,
             PasswordHash = passwordHash,
-            CreatedTime = DateTime.UtcNow,
+            CreationTime = DateTime.UtcNow,
             LastLoginTime = DateTime.UtcNow
         };
         await _collection.InsertOneAsync(user);

@@ -30,7 +30,7 @@ public class LoginController : ControllerBase
             {
                 Id = user.Id,
                 Username = user.Username,
-                CreationTime = user.CreatedTime
+                CreationTime = user.CreationTime
             };
             return Ok(info);
         }

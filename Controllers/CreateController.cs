@@ -30,7 +30,7 @@ public class CreateController : ControllerBase
             {
                 Id = user.Id,
                 Username = user.Username,
-                CreationTime = user.CreatedTime
+                CreationTime = user.CreationTime
             };
             return Created("/info/" + info.Id, info);
         }
