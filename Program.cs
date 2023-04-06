@@ -15,6 +15,7 @@ public class Program
         builder.Services.Configure<AesOptions>(builder.Configuration.GetSection("Aes"));
         builder.Services.Configure<HashOptions>(builder.Configuration.GetSection("Hash"));
         builder.Services.AddSingleton<UserService>();
+        builder.Services.AddSingleton<TokenService>();
         builder.Services.AddSingleton<EncryptionService>();
         builder.Services.AddSingleton<HashService>();
         builder.Services.AddControllers();

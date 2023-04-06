@@ -18,6 +18,15 @@ public class EncryptionService
         _key = Convert.FromHexString(options.Value.Key);
     }
 
+    public static string GenerateKey()
+    {
+        using (var aes = Aes.Create())
+        {
+            aes.GenerateKey();
+            return Convert.ToHexString(aes.Key);
+        }
+    }
+
     public string EncryptString(string payload)
     {
         var payloadBytes = Encoding.UTF8.GetBytes(payload);

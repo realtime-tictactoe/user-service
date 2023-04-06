@@ -10,10 +10,12 @@ namespace TicTacToe.User.Controllers;
 public class LoginController : ControllerBase
 {
     private readonly UserService _userService;
+    private readonly TokenService _tokenService;
 
-    public LoginController(UserService userService)
+    public LoginController(UserService userService, TokenService tokenService)
     {
         _userService = userService;
+        _tokenService = tokenService;
     }
 
     [HttpPost]
@@ -25,6 +27,9 @@ public class LoginController : ControllerBase
                 return BadRequest(ModelState);
 
             var user = await _userService.LoginUser(credentials.Username, credentials.Password);
+            
+            var token = _tokenService.IssueEncryptedToken(user);
+            Response.Cookies.Append("Token", token);
             
             var info = new UserInfo
             {
