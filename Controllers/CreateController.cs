@@ -1,5 +1,7 @@
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using TicTacToe.User.DTOs;
+using TicTacToe.User.Services;
 
 namespace TicTacToe.User.Controllers;
 
@@ -7,9 +9,39 @@ namespace TicTacToe.User.Controllers;
 [Route("create")]
 public class CreateController : ControllerBase
 {
-    [HttpPost]
-    public IActionResult CreateAccountAsync([FromBody] UserCredentials credentials)
+    private readonly UserService _userService;
+
+    public CreateController(UserService userService)
     {
-        return StatusCode(501, "Not implemented.");
+        _userService = userService;
+    }
+    
+    [HttpPost]
+    public async Task<ActionResult<UserInfo>> CreateAccountAsync([FromBody] UserCredentials credentials)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var user = await _userService.CreateUserAsync(credentials.Username, credentials.Password);
+
+            var info = new UserInfo
+            {
+                Id = user.Id,
+                Username = user.Username,
+                CreationTime = user.CreatedTime
+            };
+            return Created("/info/" + info.Id, info);
+        }
+        catch (UserAlreadyExistsException)
+        {
+            var problemDetails = new ProblemDetails
+            {
+                Title = "Username already in use.",
+                Status = 409
+            };
+            return Conflict(problemDetails);
+        }
     }
 }
